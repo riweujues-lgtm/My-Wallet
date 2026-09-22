@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dompetku - Auto Google Sheets</title>
+    <title>Dompetku - Pengeluaran Bulanan</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-cover bg-center bg-no-repeat min-h-screen font-sans p-4 flex items-center justify-center bg-fixed" 
@@ -18,76 +18,66 @@
             🎵 Musik: Off
         </button>
 
-        <h1 class="text-2xl font-black text-center text-gray-900 mb-6 mt-10 drop-shadow-md">💰 DompetKu Cloud</h1>
+        <h1 class="text-2xl font-black text-center text-gray-900 mb-6 mt-10 drop-shadow-md">💸 Pengeluaran Bulanan</h1>
 
+        <!-- Ringkasan Statistik -->
         <div class="grid grid-cols-3 gap-2 text-center mb-6">
-            <div class="bg-green-100/90 p-2 rounded-lg border border-green-300 shadow-xs">
-                <p class="text-xs text-green-900 font-bold">Pemasukan</p>
-                <p id="total-income" class="text-sm font-black text-green-700">Rp 0</p>
-            </div>
             <div class="bg-red-100/90 p-2 rounded-lg border border-red-300 shadow-xs">
-                <p class="text-xs text-red-900 font-bold">Pengeluaran</p>
-                <p id="total-expense" class="text-sm font-black text-red-700">Rp 0</p>
+                <p class="text-[11px] text-red-900 font-bold">Bulan Ini</p>
+                <p id="total-monthly" class="text-xs font-black text-red-700 mt-1">Rp 0</p>
+            </div>
+            <div class="bg-orange-100/90 p-2 rounded-lg border border-orange-300 shadow-xs">
+                <p class="text-[11px] text-orange-900 font-bold">Total Semua</p>
+                <p id="total-all" class="text-xs font-black text-orange-700 mt-1">Rp 0</p>
             </div>
             <div class="bg-blue-100/90 p-2 rounded-lg border border-blue-300 shadow-xs">
-                <p class="text-xs text-blue-900 font-bold">Saldo</p>
-                <p id="total-balance" class="text-sm font-black text-blue-700">Rp 0</p>
+                <p class="text-[11px] text-blue-900 font-bold">Total Transaksi</p>
+                <p id="total-count" class="text-xs font-black text-blue-700 mt-1">0 item</p>
             </div>
         </div>
 
+        <!-- Form Catat Pengeluaran -->
         <div class="mb-6 bg-white/70 p-4 rounded-xl border border-white/50 shadow-md">
-            <input type="text" id="desc" placeholder="Keterangan transaksi (misal: Jajan bakso)" class="w-full p-2 border border-gray-400 rounded mb-2 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <input type="number" id="amount" placeholder="Nominal (Rp)" class="w-full p-2 border border-gray-400 rounded mb-2 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <select id="type" class="w-full p-2 border border-gray-400 rounded mb-3 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="income">Pemasukan (+)</option>
-                <option value="expense">Pengeluaran (-)</option>
-            </select>
-            <button onclick="addTransaction()" id="btn-submit" class="w-full bg-blue-600 text-white p-2 rounded-lg font-black text-sm hover:bg-blue-700 transition shadow-md cursor-pointer tracking-wide">Catat Transaksi</button>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Catat Pengeluaran Baru</label>
+            <input type="text" id="desc" placeholder="Keterangan (misal: Beli Bakso, Bayar Listrik)" class="w-full p-2 border border-gray-400 rounded mb-2 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-red-400">
+            <input type="number" id="amount" placeholder="Nominal Pengeluaran (Rp)" class="w-full p-2 border border-gray-400 rounded mb-3 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-red-400">
+            
+            <button onclick="addTransaction()" id="btn-submit" class="w-full bg-red-600 text-white p-2 rounded-lg font-black text-sm hover:bg-red-700 transition shadow-md cursor-pointer tracking-wide">Catat Pengeluaran</button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div>
-                <h2 class="text-sm font-black text-green-900 mb-2 border-b-2 border-green-500 pb-1 flex items-center gap-1 drop-shadow-sm">📥 Pemasukan</h2>
-                <ul id="income-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto space-y-1">
-                    </ul>
+        <!-- Filter & Rincian Pengeluaran -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2 border-b-2 border-red-500 pb-1">
+                <h2 class="text-sm font-black text-red-900 flex items-center gap-1 drop-shadow-sm">📤 Detail Pengeluaran</h2>
+                <select id="month-filter" onchange="updateUI()" class="text-xs p-1 border border-gray-400 rounded bg-white/90 font-bold text-gray-800 focus:outline-none">
+                    <option value="all">Semua Bulan</option>
+                </select>
             </div>
             
-            <div>
-                <h2 class="text-sm font-black text-red-900 mb-2 border-b-2 border-red-500 pb-1 flex items-center gap-1 drop-shadow-sm">📤 Pengeluaran</h2>
-                <ul id="expense-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto space-y-1">
-                    </ul>
-            </div>
+            <ul id="expense-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto space-y-1">
+                <!-- Daftar item pengeluaran -->
+            </ul>
         </div>
 
+        <!-- Rekap Total Pengeluaran Per Bulan & Tombol Ekspor -->
         <div class="border-t border-dashed border-gray-400 pt-4 bg-white/70 p-3 rounded-xl shadow-md">
-            <h3 class="text-xs font-black text-gray-600 uppercase tracking-wider mb-2">📋 Rincian Transaksi Anda</h3>
-            <div class="space-y-1 text-sm text-gray-800 font-medium">
-                <div class="flex justify-between">
-                    <span>Total Item Pemasukan:</span>
-                    <span id="count-income" class="font-bold text-green-700">0 kali</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Total Item Pengeluaran:</span>
-                    <span id="count-expense" class="font-bold text-red-700">0 kali</span>
-                </div>
-                <div class="flex justify-between pt-1">
-                    <span>Total Uang yang Dipakai:</span>
-                    <span id="rincian-used" class="font-extrabold text-red-700">Rp 0</span>
-                </div>
-                <hr class="border-gray-300 my-1">
-                <div class="flex justify-between text-base font-black text-gray-900 pt-1">
-                    <span>Sisa Saldo Bersih:</span>
-                    <span id="rincian-saldo">Rp 0</span>
-                </div>
+            <h3 class="text-xs font-black text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+                📊 Total Pengeluaran Per Bulan
+            </h3>
+            
+            <div id="monthly-summary-list" class="space-y-1 text-sm text-gray-800 mb-3">
+                <!-- Total bulanan akan direkap di sini -->
             </div>
+
+            <button onclick="exportToCSV()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-black text-xs hover:bg-emerald-700 transition shadow-md cursor-pointer flex items-center justify-center gap-1">
+                📥 Ekspor Data ke CSV (Excel)
+            </button>
         </div>
 
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-NGeAN7PYFSfiTgNGwRSLeGDIBK9dwilcfBBM_2xznqGOLFfejUpNr17XMt8zL6Z9Dw/exec";
-
-        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let expenses = JSON.parse(localStorage.getItem('monthly_expenses')) || [];
 
         function toggleMusic() {
             const music = document.getElementById('bg-music');
@@ -104,119 +94,158 @@
             }
         }
 
+        function getMonthYearLabel(dateObj) {
+            return dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        }
+
         function updateUI() {
-            const incomeList = document.getElementById('income-list');
             const expenseList = document.getElementById('expense-list');
-            
-            const totalIncomeEl = document.getElementById('total-income');
-            const totalExpenseEl = document.getElementById('total-expense');
-            const totalBalanceEl = document.getElementById('total-balance');
-            
-            const countIncomeEl = document.getElementById('count-income');
-            const countExpenseEl = document.getElementById('count-expense');
-            const rincianUsedEl = document.getElementById('rincian-used');
-            const rincianSaldoEl = document.getElementById('rincian-saldo');
+            const monthlySummaryList = document.getElementById('monthly-summary-list');
+            const filterSelect = document.getElementById('month-filter');
 
-            incomeList.innerHTML = '';
-            expenseList.innerHTML = '';
-            
-            let income = 0;
-            let expense = 0;
-            let incomeCount = 0;
-            let expenseCount = 0;
+            const totalMonthlyEl = document.getElementById('total-monthly');
+            const totalAllEl = document.getElementById('total-all');
+            const totalCountEl = document.getElementById('total-count');
 
-            transactions.forEach((t, index) => {
-                const isIncome = t.type === 'income';
-                
-                const li = document.createElement('li');
-                li.className = 'py-2 text-xs bg-white/85 p-2 rounded-lg shadow-sm mb-1 flex flex-col relative group border border-white/60 backdrop-blur-xs';
-                li.innerHTML = `
-                    <div class="flex justify-between items-start pr-4">
-                        <span class="text-gray-900 font-black break-all">${t.desc}</span>
-                        <button onclick="deleteTransaction(${index})" class="text-gray-500 hover:text-red-500 absolute right-1 top-1">❌</button>
-                    </div>
-                    <span class="text-[10px] text-gray-600 mt-0.5 font-bold">${t.date} ${t.time}</span>
-                    <span class="${isIncome ? 'text-green-700' : 'text-red-700'} font-black mt-1 text-right text-sm">
-                        Rp ${t.amount.toLocaleString('id-ID')}
-                    </span>
-                `;
+            const monthlyTotals = {};
+            let grandTotal = 0;
 
-                if (isIncome) {
-                    income += t.amount;
-                    incomeCount++;
-                    incomeList.appendChild(li);
-                } else {
-                    expense += t.amount;
-                    expenseCount++;
-                    expenseList.appendChild(li);
+            expenses.forEach(item => {
+                const monthLabel = item.monthLabel;
+                if (!monthlyTotals[monthLabel]) {
+                    monthlyTotals[monthLabel] = 0;
                 }
+                monthlyTotals[monthLabel] += item.amount;
+                grandTotal += item.amount;
             });
 
-            const balance = income - expense;
-            
-            totalIncomeEl.innerText = `Rp ${income.toLocaleString('id-ID')}`;
-            totalExpenseEl.innerText = `Rp ${expense.toLocaleString('id-ID')}`;
-            totalBalanceEl.innerText = `Rp ${balance.toLocaleString('id-ID')}`;
-            
-            countIncomeEl.innerText = `${incomeCount} kali`;
-            countExpenseEl.innerText = `${expenseCount} kali`;
-            rincianUsedEl.innerText = `Rp ${expense.toLocaleString('id-ID')}`;
-            rincianSaldoEl.innerText = `Rp ${balance.toLocaleString('id-ID')}`;
-            
-            if (balance < 0) {
-                rincianSaldoEl.className = "font-black text-red-700 text-base";
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">Semua Bulan</option>';
+            Object.keys(monthlyTotals).forEach(month => {
+                const opt = document.createElement('option');
+                opt.value = month;
+                opt.innerText = month;
+                filterSelect.appendChild(opt);
+            });
+            filterSelect.value = currentFilter && filterSelect.querySelector(`option[value="${currentFilter}"]`) ? currentFilter : 'all';
+
+            const selectedMonth = filterSelect.value;
+            const filteredExpenses = selectedMonth === 'all' 
+                ? expenses 
+                : expenses.filter(item => item.monthLabel === selectedMonth);
+
+            expenseList.innerHTML = '';
+            if (filteredExpenses.length === 0) {
+                expenseList.innerHTML = '<p class="text-xs text-gray-500 text-center py-3">Belum ada catatan pengeluaran.</p>';
             } else {
-                rincianSaldoEl.className = "font-black text-blue-700 text-base";
+                filteredExpenses.forEach((t) => {
+                    const globalIndex = expenses.indexOf(t);
+                    const li = document.createElement('li');
+                    li.className = 'py-2 text-xs bg-white/85 p-2 rounded-lg shadow-sm mb-1 flex flex-col relative border border-white/60 backdrop-blur-xs';
+                    li.innerHTML = `
+                        <div class="flex justify-between items-start pr-5">
+                            <span class="text-gray-900 font-black break-all">${t.desc}</span>
+                            <button onclick="deleteTransaction(${globalIndex})" class="text-gray-400 hover:text-red-600 absolute right-1 top-1">❌</button>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[10px] text-gray-600 font-bold">${t.dateStr} (${t.time})</span>
+                            <span class="text-red-700 font-black text-sm">
+                                Rp ${t.amount.toLocaleString('id-ID')}
+                            </span>
+                        </div>
+                    `;
+                    expenseList.appendChild(li);
+                });
             }
-            
-            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            monthlySummaryList.innerHTML = '';
+            const monthKeys = Object.keys(monthlyTotals);
+            if (monthKeys.length === 0) {
+                monthlySummaryList.innerHTML = '<p class="text-xs text-gray-500 text-center py-1">Belum ada rekap bulanan.</p>';
+            } else {
+                monthKeys.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between text-xs font-medium py-1 border-b border-gray-200/60 last:border-0';
+                    div.innerHTML = `
+                        <span class="text-gray-800 font-bold">${m}:</span>
+                        <span class="font-extrabold text-red-700">Rp ${monthlyTotals[m].toLocaleString('id-ID')}</span>
+                    `;
+                    monthlySummaryList.appendChild(div);
+                });
+            }
+
+            const currentMonthLabel = getMonthYearLabel(new Date());
+            const thisMonthTotal = monthlyTotals[currentMonthLabel] || 0;
+
+            totalMonthlyEl.innerText = `Rp ${thisMonthTotal.toLocaleString('id-ID')}`;
+            totalAllEl.innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+            totalCountEl.innerText = `${expenses.length} item`;
+
+            localStorage.setItem('monthly_expenses', JSON.stringify(expenses));
         }
 
         function addTransaction() {
             const desc = document.getElementById('desc').value;
             const amount = parseFloat(document.getElementById('amount').value);
-            const type = document.getElementById('type').value;
-            const btnSubmit = document.getElementById('btn-submit');
 
-            if (!desc || isNaN(amount)) return alert('Harap isi keterangan dan nominal dengan benar!');
+            if (!desc || isNaN(amount) || amount <= 0) {
+                return alert('Harap isi keterangan dan nominal dengan benar!');
+            }
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const monthLabel = getMonthYearLabel(now);
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-            const newRecord = { desc, amount, type, date: dateStr, time: timeStr };
+            const newRecord = { 
+                desc, 
+                amount, 
+                type: 'expense', 
+                dateStr, 
+                monthLabel, 
+                time: timeStr 
+            };
 
-            transactions.push(newRecord);
+            expenses.unshift(newRecord);
             updateUI();
 
             document.getElementById('desc').value = '';
             document.getElementById('amount').value = '';
-
-            btnSubmit.innerText = "Mengirim ke Google Sheets...";
-            btnSubmit.disabled = true;
-
-            fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify(newRecord),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
-            })
-            .then(response => {
-                btnSubmit.innerText = "Catat Transaksi";
-                btnSubmit.disabled = false;
-            })
-            .catch(error => {
-                console.error("Gagal mengirim ke cloud:", error);
-                btnSubmit.innerText = "Catat Transaksi";
-                btnSubmit.disabled = false;
-                alert("Data aman di HP, tapi gagal masuk Google Sheets. Cek internet Anda.");
-            });
         }
 
         function deleteTransaction(index) {
-            if(confirm('Hapus catatan dari tampilan web? (Data di Google Sheets tetap aman)')) {
-                transactions.splice(index, 1);
+            if(confirm('Hapus catatan pengeluaran ini?')) {
+                expenses.splice(index, 1);
                 updateUI();
             }
+        }
+
+        // Fungsi Ekspor Data ke File CSV
+        function exportToCSV() {
+            if (expenses.length === 0) {
+                return alert('Belum ada data pengeluaran untuk diekspor!');
+            }
+
+            // UTF-8 BOM agar Excel dapat membaca karakter bahasa Indonesia / tanda baca dengan rapi
+            let csvContent = "\uFEFF";
+            csvContent += "Tanggal;Jam;Bulan & Tahun;Keterangan;Nominal (Rp)\n";
+
+            expenses.forEach(item => {
+                const descClean = `"${item.desc.replace(/"/g, '""')}"`;
+                csvContent += `${item.dateStr};${item.time};${item.monthLabel};${descClean};${item.amount}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const today = new Date().toISOString().slice(0, 10);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Pengeluaran_Bulanan_${today}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         updateUI();
